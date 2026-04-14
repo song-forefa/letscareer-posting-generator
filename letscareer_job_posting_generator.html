@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>채용공고 톡방 메시지 생성기 — 렛츠커리어</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --kakao: #FEE500;
+      --kakao-dark: #D4B800;
+      --bg: #f5f5f0;
+      --surface: #ffffff;
+      --surface2: #f9f9f7;
+      --border: rgba(0,0,0,0.1);
+      --border2: rgba(0,0,0,0.18);
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --text-hint: #aaa;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+    }
+
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page-header {
+      max-width: 720px;
+      margin: 0 auto 2rem;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .logo-badge {
+      background: var(--kakao);
+      color: #1a1a1a;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.03em;
+    }
+
+    .logo-name {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .page-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      border: 0.5px solid var(--border);
+      padding: 1.5rem;
+      max-width: 720px;
+      margin: 0 auto 1rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .room-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .room-tab {
+      padding: 7px 14px;
+      font-size: 13px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+
+    .room-tab.active {
+      background: var(--kakao);
+      border-color: var(--kakao-dark);
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+
+    .room-tab:hover:not(.active) {
+      background: var(--bg);
+    }
+
+    .posting-card {
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      margin-bottom: 10px;
+    }
+
+    .posting-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .posting-num {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.06);
+      padding: 3px 9px;
+      border-radius: 10px;
+    }
+
+    .remove-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 0.5px solid var(--border2);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-family: inherit;
+      transition: all .15s;
+    }
+
+    .remove-btn:hover {
+      background: #fff0f0;
+      color: #c0392b;
+      border-color: #f5b7b1;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field-row.full {
+      grid-template-columns: 1fr;
+    }
+
+    .field-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    input[type=text],
+    input[type=url],
+    select {
+      width: 100%;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--kakao-dark);
+      box-shadow: 0 0 0 3px rgba(254,229,0,0.25);
+    }
+
+    input::placeholder {
+      color: var(--text-hint);
+    }
+
+    input:disabled {
+      background: rgba(0,0,0,0.04);
+      color: var(--text-secondary);
+    }
+
+    .deadline-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 10px;
+      font-size: 13px;
+      border-radius: var(--radius-md);
+      border: 1.5px dashed var(--border2);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+
+    .add-btn:hover {
+      background: rgba(254,229,0,0.12);
+      border-color: var(--kakao-dark);
+      color: #333;
+    }
+
+    .divider {
+      border: none;
+      border-top: 0.5px solid var(--border);
+      margin: 1.25rem 0;
+    }
+
+    .gen-btn {
+      width: 100%;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: var(--radius-lg);
+      border: none;
+      background: var(--kakao);
+      color: #1a1a1a;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s, transform .1s;
+    }
+
+    .gen-btn:hover { background: var(--kakao-dark); }
+    .gen-btn:active { transform: scale(0.99); }
+
+    .output-area { display: none; }
+    .output-area.show { display: block; }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .output-box {
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.125rem;
+      font-size: 14px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+
+    .copy-btn:hover { background: var(--bg); }
+    .copy-btn.copied { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+
+    @media (max-width: 480px) {
+      .field-row { grid-template-columns: 1fr; }
+      .deadline-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="logo">
+      <span class="logo-badge">렛츠커리어</span>
+      <span class="logo-name">톡방 메시지 생성기</span>
+    </div>
+    <h1 class="page-title">채용공고 메시지 생성기</h1>
+    <p class="page-desc">직무 톡방에 올릴 채용공고 메시지를 빠르게 만들어보세요.</p>
+  </div>
+
+  <div class="card">
+    <div class="section-label">톡방 선택</div>
+    <div class="room-tabs" id="roomTabs">
+      <button class="room-tab active" data-room="AI역량/개발">AI역량/개발</button>
+      <button class="room-tab" data-room="마케팅">마케팅</button>
+      <button class="room-tab" data-room="기획/운영">기획/운영</button>
+      <button class="room-tab" data-room="인사/HR/경영관리">인사/HR/경영관리</button>
+      <button class="room-tab" data-room="세일즈">세일즈</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">공고 입력</div>
+    <div id="postingList"></div>
+    <button class="add-btn" id="addBtn">+ 공고 추가</button>
+
+    <hr class="divider">
+    <button class="gen-btn" id="genBtn">메시지 생성하기</button>
+  </div>
+
+  <div class="card output-area" id="outputArea">
+    <div class="output-header">
+      <span class="section-label" style="margin-bottom:0">생성된 메시지</span>
+      <button class="copy-btn" id="copyBtn">복사</button>
+    </div>
+    <div class="output-box" id="outputBox"></div>
+  </div>
+
+  <script>
+    let selectedRoom = 'AI역량/개발';
+    let postingCount = 0;
+
+    const WORK_TYPES = [
+      { value: '', label: '근무형태 선택' },
+      { value: '채용전환형 인턴', label: '채용전환형 인턴' },
+      { value: '체험형 인턴', label: '체험형 인턴' },
+      { value: '정규직', label: '정규직' },
+      { value: '계약직', label: '계약직' },
+      { value: '상이함 (공고 확인 요망)', label: '상이함 (공고 확인 요망)' },
+      { value: 'custom', label: '직접 입력' }
+    ];
+
+    function addPosting() {
+      postingCount++;
+      const id = postingCount;
+      const div = document.createElement('div');
+      div.className = 'posting-card';
+      div.id = `posting-${id}`;
+      div.innerHTML = `
+        <div class="posting-card-header">
+          <span class="posting-num">공고 ${id}</span>
+          ${id > 1 ? `<button class="remove-btn" onclick="removePosting(${id})">×</button>` : ''}
+        </div>
+        <div class="field-row">
+          <div class="field-wrap">
+            <span class="field-label">회사명</span>
+            <input type="text" id="company-${id}" placeholder="예: 라라스윗">
+          </div>
+          <div class="field-wrap">
+            <span class="field-label">직무/포지션</span>
+            <input type="text" id="position-${id}" placeholder="예: 영상 콘텐츠 인턴십 4기">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-wrap">
+            <span class="field-label">근무 형태</span>
+            <select id="worktype-select-${id}" onchange="handleWorktypeChange(${id})">
+              ${WORK_TYPES.map(w => `<option value="${w.value}">${w.label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-wrap" id="worktype-custom-wrap-${id}" style="display:none">
+            <span class="field-label">직접 입력</span>
+            <input type="text" id="worktype-custom-${id}" placeholder="근무 형태 입력">
+          </div>
+        </div>
+        <div class="field-row full" style="margin-bottom:10px">
+          <div class="field-wrap">
+            <span class="field-label">마감 기한</span>
+            <div class="deadline-row">
+              <select id="deadline-type-${id}" onchange="handleDeadlineType(${id})">
+                <option value="date">날짜 지정</option>
+                <option value="asap">상시채용</option>
+                <option value="close">채용 시 마감</option>
+                <option value="custom">직접 입력</option>
+              </select>
+              <input type="text" id="deadline-date-${id}" placeholder="예: 26년 04월 26일, 23:59">
+            </div>
+          </div>
+        </div>
+        <div class="field-row full">
+          <div class="field-wrap">
+            <span class="field-label">공고 링크 URL</span>
+            <input type="url" id="url-${id}" placeholder="https://...">
+          </div>
+        </div>
+      `;
+      document.getElementById('postingList').appendChild(div);
+    }
+
+    function removePosting(id) {
+      const el = document.getElementById(`posting-${id}`);
+      if (el) el.remove();
+      renumberPostings();
+    }
+
+    function renumberPostings() {
+      const cards = document.querySelectorAll('.posting-card');
+      cards.forEach((card, i) => {
+        const num = card.querySelector('.posting-num');
+        if (num) num.textContent = `공고 ${i + 1}`;
+        const removeBtn = card.querySelector('.remove-btn');
+        if (i === 0 && removeBtn) removeBtn.remove();
+        if (i > 0 && !card.querySelector('.remove-btn')) {
+          const header = card.querySelector('.posting-card-header');
+          const id = card.id.replace('posting-', '');
+          const btn = document.createElement('button');
+          btn.className = 'remove-btn';
+          btn.innerHTML = '×';
+          btn.onclick = () => removePosting(id);
+          header.appendChild(btn);
+        }
+      });
+    }
+
+    function handleWorktypeChange(id) {
+      const sel = document.getElementById(`worktype-select-${id}`);
+      const wrap = document.getElementById(`worktype-custom-wrap-${id}`);
+      wrap.style.display = sel.value === 'custom' ? 'flex' : 'none';
+    }
+
+    function handleDeadlineType(id) {
+      const type = document.getElementById(`deadline-type-${id}`).value;
+      const dateInput = document.getElementById(`deadline-date-${id}`);
+      if (type === 'date') {
+        dateInput.disabled = false;
+        dateInput.placeholder = '예: 26년 04월 26일, 23:59';
+        dateInput.value = '';
+      } else if (type === 'asap') {
+        dateInput.disabled = true;
+        dateInput.value = '상시 채용 (ASAP 지원 추천!)';
+      } else if (type === 'close') {
+        dateInput.disabled = true;
+        dateInput.value = '채용 시 마감 (공고 확인 요망)';
+      } else {
+        dateInput.disabled = false;
+        dateInput.placeholder = '직접 입력';
+        dateInput.value = '';
+      }
+    }
+
+    function getWorktype(id) {
+      const sel = document.getElementById(`worktype-select-${id}`);
+      if (sel.value === 'custom') {
+        return document.getElementById(`worktype-custom-${id}`).value || '(근무형태 미입력)';
+      }
+      return sel.value || '(근무형태 미입력)';
+    }
+
+    function getDeadline(id) {
+      return document.getElementById(`deadline-date-${id}`).value || '(마감 기한 미입력)';
+    }
+
+    function generateMessage() {
+      const cards = document.querySelectorAll('.posting-card');
+      let postings = [];
+      cards.forEach(card => {
+        const id = card.id.replace('posting-', '');
+        const company = (document.getElementById(`company-${id}`)?.value || '').trim();
+        const position = (document.getElementById(`position-${id}`)?.value || '').trim();
+        const worktype = getWorktype(id);
+        const deadline = getDeadline(id);
+        const url = (document.getElementById(`url-${id}`)?.value || '').trim();
+        postings.push({ company, position, worktype, deadline, url });
+      });
+
+      let lines = [];
+      lines.push(`오늘의 ${selectedRoom} 공고 추천!🚨`);
+
+      postings.forEach(p => {
+        const title = p.position ? `[${p.company}] ${p.position}` : `[${p.company}]`;
+        lines.push(`📍 ${title}`);
+        lines.push(`📌 근무 형태 : ${p.worktype}`);
+        lines.push(`⏰ 마감 기한 : ${p.deadline}`);
+        lines.push(`👉 ${p.url}`);
+        lines.push('');
+      });
+
+      const msg = lines.join('\n').replace(/\n$/, '');
+      document.getElementById('outputBox').textContent = msg;
+      const area = document.getElementById('outputArea');
+      area.classList.add('show');
+      area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    document.getElementById('roomTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.room-tab');
+      if (!btn) return;
+      document.querySelectorAll('.room-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedRoom = btn.dataset.room;
+    });
+
+    document.getElementById('addBtn').addEventListener('click', addPosting);
+    document.getElementById('genBtn').addEventListener('click', generateMessage);
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('outputBox').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '복사됨 ✓';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
+      });
+    });
+
+    addPosting();
+  </script>
+</body>
+</html>
