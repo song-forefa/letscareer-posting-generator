@@ -217,6 +217,49 @@
       color: var(--text-secondary);
     }
 
+    textarea {
+      width: 100%;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+      outline: none;
+      resize: vertical;
+      min-height: 64px;
+      line-height: 1.6;
+      transition: border-color .15s;
+    }
+
+    textarea:focus {
+      border-color: var(--kakao-dark);
+      box-shadow: 0 0 0 3px rgba(254,229,0,0.25);
+    }
+
+    textarea::placeholder { color: var(--text-hint); }
+
+    .reason-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      margin-bottom: 8px;
+      user-select: none;
+    }
+
+    .reason-toggle input[type=checkbox] {
+      width: 14px;
+      height: 14px;
+      accent-color: #1a1a1a;
+      cursor: pointer;
+    }
+
+    .reason-wrap { display: none; margin-bottom: 0; }
+
     .deadline-row {
       display: grid;
       grid-template-columns: 120px 1fr;
@@ -416,6 +459,13 @@
             <input type="url" id="url-${id}" placeholder="https://...">
           </div>
         </div>
+        <label class="reason-toggle">
+          <input type="checkbox" id="reason-check-${id}" onchange="toggleReason(${id})">
+          👌 추천 이유 추가 (선택)
+        </label>
+        <div class="reason-wrap field-wrap" id="reason-wrap-${id}">
+          <textarea id="reason-${id}" placeholder="예: 마케팅 인턴 첫 도전이라면 딱 좋은 규모! 포트폴리오 쌓기에 최적이에요 🙌"></textarea>
+        </div>
       `;
       document.getElementById('postingList').appendChild(div);
     }
@@ -443,6 +493,12 @@
           header.appendChild(btn);
         }
       });
+    }
+
+    function toggleReason(id) {
+      const checked = document.getElementById(`reason-check-${id}`).checked;
+      const wrap = document.getElementById(`reason-wrap-${id}`);
+      wrap.style.display = checked ? 'flex' : 'none';
     }
 
     function handleWorktypeChange(id) {
@@ -493,7 +549,9 @@
         const worktype = getWorktype(id);
         const deadline = getDeadline(id);
         const url = (document.getElementById(`url-${id}`)?.value || '').trim();
-        postings.push({ company, position, worktype, deadline, url });
+        const reasonChecked = document.getElementById(`reason-check-${id}`)?.checked;
+        const reason = reasonChecked ? (document.getElementById(`reason-${id}`)?.value || '').trim() : '';
+        postings.push({ company, position, worktype, deadline, url, reason });
       });
 
       let lines = [];
@@ -504,6 +562,7 @@
         lines.push(`📍 ${title}`);
         lines.push(`📌 근무 형태 : ${p.worktype}`);
         lines.push(`⏰ 마감 기한 : ${p.deadline}`);
+        if (p.reason) lines.push(`👌 추천 이유 : ${p.reason}`);
         lines.push(`👉 ${p.url}`);
         lines.push('');
       });
